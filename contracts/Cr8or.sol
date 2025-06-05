@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.28;
 
 import "./CreatorMonetizationNFT.sol"; // Adjust path as needed
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -10,7 +10,7 @@ contract Cr8or is Ownable {
     // tokenId => price in wei
     mapping(uint256 => uint256) public tokenPrices;
 
-    constructor(address _nftAddress) {
+    constructor(address payable _nftAddress) Ownable(msg.sender) {
         nftContract = CreatorMonetizationNFT(_nftAddress);
     }
 
@@ -30,7 +30,8 @@ contract Cr8or is Ownable {
         require(seller != msg.sender, "You already own this");
 
         // Calculate royalty
-        (address royaltyReceiver, uint256 royaltyAmount) = nftContract.royaltyInfo(tokenId, price);
+        (address royaltyReceiver, uint256 royaltyAmount) = nftContract
+            .royaltyInfo(tokenId, price);
 
         require(msg.value >= royaltyAmount, "Insufficient royalty amount");
 
