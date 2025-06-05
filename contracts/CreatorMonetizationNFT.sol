@@ -199,6 +199,7 @@ contract CreatorMonetizationNFT is
     )
         public
         view
+        virtual
         override(ERC721, ERC721URIStorage, ERC721Royalty)
         returns (bool)
     {

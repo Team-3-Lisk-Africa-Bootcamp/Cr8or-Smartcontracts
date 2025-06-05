@@ -4,48 +4,61 @@ pragma solidity ^0.8.28;
 import "./CreatorMonetizationNFT.sol"; // Adjust path as needed
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Cr8or is Ownable {
-    CreatorMonetizationNFT public nftContract;
-
+contract Cr8or is Ownable, CreatorMonetizationNFT {
     // tokenId => price in wei
     mapping(uint256 => uint256) public tokenPrices;
 
-    constructor(address payable _nftAddress) Ownable(msg.sender) {
-        nftContract = CreatorMonetizationNFT(_nftAddress);
-    }
+    constructor(
+        string memory name,
+        string memory symbol
+    )
+        CreatorMonetizationNFT(
+            name,
+            symbol,
+            0x8a371e00cd51E2BE005B86EF73C5Ee9Ef6d23FeB
+        )
+    {}
 
     /// @notice Set price for a token (only owner/creator should do this)
     function setPrice(uint256 tokenId, uint256 price) external {
-        require(nftContract.ownerOf(tokenId) == msg.sender, "Not token owner");
+        require(ownerOf(tokenId) == msg.sender, "Not token owner");
         tokenPrices[tokenId] = price;
     }
 
     /// @notice Buy the NFT and pay royalties
     function buy(uint256 tokenId) external payable {
         uint256 price = tokenPrices[tokenId];
-        address seller = nftContract.ownerOf(tokenId);
+        address seller = ownerOf(tokenId);
 
         require(price > 0, "Token not for sale");
         require(msg.value == price, "Incorrect ETH sent");
         require(seller != msg.sender, "You already own this");
 
         // Calculate royalty
-        (address royaltyReceiver, uint256 royaltyAmount) = nftContract
-            .royaltyInfo(tokenId, price);
+        (address royaltyReceiver, uint256 royaltyAmount) = royaltyInfo(
+            tokenId,
+            price
+        );
 
         require(msg.value >= royaltyAmount, "Insufficient royalty amount");
 
-        // Pay royalty to contract (contract will split internally)
-        nftContract.distributeRoyalty{value: royaltyAmount}(tokenId, price);
+        // Pay royalty to the royalty receiver
+        payable(royaltyReceiver).transfer(royaltyAmount);
 
         // Pay seller the rest
         uint256 sellerAmount = msg.value - royaltyAmount;
         payable(seller).transfer(sellerAmount);
 
         // Transfer NFT to buyer
-        nftContract.transferFrom(seller, msg.sender, tokenId);
+        transferFrom(seller, msg.sender, tokenId);
 
         // Clear price
         tokenPrices[tokenId] = 0;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(CreatorMonetizationNFT) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
