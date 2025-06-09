@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "./CreatorMonetizationNFT.sol"; // Adjust path as needed
+import "./CreatorMonetizationNFT.sol"; 
+import "./Cr8orAdmin.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Cr8or is Ownable, CreatorMonetizationNFT {
+contract Cr8or is Ownable, CreatorMonetizationNFT, Cr8orAdmin {
     // tokenId => price in wei
     mapping(uint256 => uint256) public tokenPrices;
 
@@ -17,11 +18,12 @@ contract Cr8or is Ownable, CreatorMonetizationNFT {
             symbol,
             0x8a371e00cd51E2BE005B86EF73C5Ee9Ef6d23FeB
         )
+        Cr8orAdmin() // initialize admin constructor
     {}
 
     /// @notice Set price for a token (only owner/creator should do this)
     function setPrice(uint256 tokenId, uint256 price) external {
-        require(ownerOf(tokenId) == msg.sender, "Not token owner");
+        require(ownerOf(tokenId) == msg.sender || isAdmin[msg.sender], "Not authorized");
         tokenPrices[tokenId] = price;
     }
 
@@ -35,10 +37,7 @@ contract Cr8or is Ownable, CreatorMonetizationNFT {
         require(seller != msg.sender, "You already own this");
 
         // Calculate royalty
-        (address royaltyReceiver, uint256 royaltyAmount) = royaltyInfo(
-            tokenId,
-            price
-        );
+        (address royaltyReceiver, uint256 royaltyAmount) = royaltyInfo(tokenId, price);
 
         require(msg.value >= royaltyAmount, "Insufficient royalty amount");
 
@@ -56,6 +55,7 @@ contract Cr8or is Ownable, CreatorMonetizationNFT {
         tokenPrices[tokenId] = 0;
     }
 
+    // Override to support interface from CreatorMonetizationNFT
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(CreatorMonetizationNFT) returns (bool) {
