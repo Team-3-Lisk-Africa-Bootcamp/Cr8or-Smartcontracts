@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "./CreatorMonetizationNFT.sol"; 
-import "./Cr8orAdmin.sol";
+import "./CreatorMonetizationNFT.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Cr8or is Ownable, CreatorMonetizationNFT, Cr8orAdmin {
+interface ICr8or {
+    function transferFrom(
+        address owner,
+        address buyer,
+        uint256 tokenId
+    ) external;
+}
+
+contract Cr8or is Ownable, CreatorMonetizationNFT {
     // tokenId => price in wei
-    mapping(uint256 => uint256) public tokenPrices;
 
     constructor(
         string memory name,
@@ -22,10 +28,6 @@ contract Cr8or is Ownable, CreatorMonetizationNFT, Cr8orAdmin {
     {}
 
     /// @notice Set price for a token (only owner/creator should do this)
-    function setPrice(uint256 tokenId, uint256 price) external {
-        require(ownerOf(tokenId) == msg.sender || isAdmin[msg.sender], "Not authorized");
-        tokenPrices[tokenId] = price;
-    }
 
     /// @notice Buy the NFT and pay royalties
     function buy(uint256 tokenId) external payable {
@@ -37,7 +39,10 @@ contract Cr8or is Ownable, CreatorMonetizationNFT, Cr8orAdmin {
         require(seller != msg.sender, "You already own this");
 
         // Calculate royalty
-        (address royaltyReceiver, uint256 royaltyAmount) = royaltyInfo(tokenId, price);
+        (address royaltyReceiver, uint256 royaltyAmount) = royaltyInfo(
+            tokenId,
+            price
+        );
 
         require(msg.value >= royaltyAmount, "Insufficient royalty amount");
 
@@ -48,8 +53,10 @@ contract Cr8or is Ownable, CreatorMonetizationNFT, Cr8orAdmin {
         uint256 sellerAmount = msg.value - royaltyAmount;
         payable(seller).transfer(sellerAmount);
 
+        // approve(address(this), tokenId);
         // Transfer NFT to buyer
-        transferFrom(seller, msg.sender, tokenId);
+        ICr8or(address(this)).transferFrom(seller, msg.sender, tokenId);
+        // transferFrom(seller, msg.sender, tokenId);
 
         // Clear price
         tokenPrices[tokenId] = 0;

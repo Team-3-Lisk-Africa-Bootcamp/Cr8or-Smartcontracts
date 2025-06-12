@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import "./Cr8orAdmin.sol";
 
 /**
  * @title CreatorMonetizationNFT
@@ -14,12 +15,14 @@ import "@openzeppelin/contracts/interfaces/IERC2981.sol";
  */
 contract CreatorMonetizationNFT is
     ERC721,
+    Cr8orAdmin,
     ERC721URIStorage,
     ERC721Royalty,
     Ownable,
     ReentrancyGuard
 {
     uint256 private _tokenIdCounter;
+    mapping(uint256 => uint256) public tokenPrices;
 
     // Platform fee: 10% of royalty (1000 basis points out of 10000)
     uint96 public constant PLATFORM_FEE_BASIS_POINTS = 1000;
@@ -61,6 +64,14 @@ contract CreatorMonetizationNFT is
         platformTreasury = _platformTreasury;
     }
 
+    function setPrice(uint256 tokenId, uint256 price) internal {
+        require(
+            ownerOf(tokenId) == msg.sender || isAdmin[msg.sender],
+            "Not authorized"
+        );
+        tokenPrices[tokenId] = price;
+    }
+
     /**
      * @dev Mint NFT with creator royalty setup
      * @param creator The creator of the NFT
@@ -68,7 +79,8 @@ contract CreatorMonetizationNFT is
      */
     function mintNFT(
         address creator,
-        string memory tokenMetadataURI
+        string memory tokenMetadataURI,
+        uint256 price
     ) external returns (uint256) {
         require(creator != address(0), "Invalid creator address");
 
@@ -80,6 +92,9 @@ contract CreatorMonetizationNFT is
 
         // Set up royalty with total 10% (split between platform and creator)
         _setTokenRoyalty(tokenId, address(this), TOTAL_ROYALTY_BASIS_POINTS);
+
+        setPrice(tokenId, price);
+        // _setApprovalForAll(msg.sender, address(this), true);
 
         // Track the creator for this token
         tokenCreators[tokenId] = creator;

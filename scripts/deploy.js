@@ -3,7 +3,7 @@ const { verify } = require("../utils/verify.js");
 require("dotenv").config();
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer, buyer] = await hre.ethers.getSigners();
 
   // Deploy Cr8or
   const Cr8or = await hre.ethers.deployContract("Cr8or", ["Cr8or", "CR8"]);
@@ -20,6 +20,14 @@ async function main() {
     console.log("Skipping verification on local network");
   }
   console.log("");
+
+  // // Get ArtNFT contract instance connected with deployer signer
+  // const cr8 = await hre.ethers.getContractAt("Cr8or", Cr8or.target, deployer);
+
+  // const mint = await cr8.mintNFT(deployer, "https://test/test", 1e18 * 0.00032);
+  // await mint.wait(1);
+  // // const buy = await cr8.buy(deployer, "https://test/test", 1e18 * 0.00032);
+  // // await buy.wait(1);
 }
 
 main().catch((error) => {
