@@ -64,7 +64,7 @@ contract CreatorMonetizationNFT is
         platformTreasury = _platformTreasury;
     }
 
-    function setPrice(uint256 tokenId, uint256 price) internal {
+    function setPrice(uint256 tokenId, uint256 price) public {
         require(
             ownerOf(tokenId) == msg.sender || isAdmin[msg.sender],
             "Not authorized"
