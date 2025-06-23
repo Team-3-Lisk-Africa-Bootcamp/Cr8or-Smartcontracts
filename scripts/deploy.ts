@@ -1,7 +1,6 @@
 const hre = require("hardhat");
 const { verify } = require("../utils/verify.js");
 require("dotenv").config();
-
 async function main() {
   const [deployer, buyer] = await hre.ethers.getSigners();
 
@@ -13,7 +12,7 @@ async function main() {
 
   // Verify contracts (optional, only if you have an etherscan key and on testnet/mainnet)
 
-  if (network.name !== "hardhat" && network.name !== "localhost") {
+  if (hre.network.name !== "hardhat" && hre.network.name !== "localhost") {
     console.log("Verifying contracts...");
     await verify(Cr8or.target, ["Cr8or", "CR8"], "contracts/Cr8or.sol:Cr8or");
   } else {

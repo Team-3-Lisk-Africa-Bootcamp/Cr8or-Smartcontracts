@@ -2,15 +2,22 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.24.0"
+    "@openzeppelin/contracts": "^5.0.0",
+    "@openzeppelin/contracts-upgradeable": "^5.0.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.0",
+    "hardhat": "^2.16.1",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0",
     "dotenv": "^16.5.0",
-    "hardhat-deploy": "^1.0.2"
+    "hardhat-deploy": "^1.0.3"
   },
   "scripts": {
-    "dl": "npx hardhat run scripts/deploy.js --network localhost",
-    "dt": "npx hardhat run scripts/deploy.js --network lisk-sepolia"
+    "test": "hardhat test",
+    "dl": "npx hardhat run scripts/deploy.ts --network localhost",
+    "dls": "npx hardhat run scripts/deploy.ts --network lisk-sepolia",
+    "": "",
+    "ul": "npx hardhat run scripts/deploy_upgrade.ts --network localhost",
+    "uls": "npx hardhat run scripts/deploy_upgrade.ts --network lisk-sepolia"
   }
 }

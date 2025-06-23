@@ -1,17 +1,17 @@
-// import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-require("hardhat-deploy");
-
+import "@openzeppelin/hardhat-upgrades";
 require("dotenv").config();
+require("hardhat-deploy");
 
 const config = {
   solidity: "0.8.28",
   networks: {
     "lisk-sepolia": {
       url: "https://rpc.sepolia-api.lisk.com",
-      accounts: [process.env.PRIVATE_KEY],
-      blockConfirmations: 5,
+      accounts: [process.env.PRIVATE_KEY as string],
       gasPrice: 1000000000,
+      blockConfirmations: 5,
     },
     hardhat: {
       chainId: 1337,
@@ -19,7 +19,7 @@ const config = {
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 1337,
-      accounts: [process.env.localPK],
+      accounts: [process.env.localPK as string],
       blockConfirmations: 5,
     },
   },
